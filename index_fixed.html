@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
+<title>Alfie Live Songbook</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{padding:18px 16px 12px;position:sticky;top:0;background:rgba(11,11,13,.94);backdrop-filter:blur(12px);z-index:5}h1{font-size:23px;margin:0 0 4px}.muted{color:#a1a1aa;font-size:13px}main{max-width:760px;margin:auto;padding:8px 14px 110px}.card{background:#17171b;border-radius:16px;padding:15px;margin:10px 0}.song{display:flex;justify-content:space-between;align-items:center;gap:12px}.song b{font-size:17px}button{border:0;border-radius:11px;padding:11px 13px;background:#29292f;color:#fff;font-weight:650;font-size:15px}.primary{background:#f5c542;color:#111}.row{display:flex;gap:8px;flex-wrap:wrap}.line{font-size:21px;line-height:1.5;padding:11px 7px;border-bottom:1px solid #29292f;border-radius:10px}.line.current{background:#302c1d}.chord{color:#f5c542;font-weight:800;margin-right:9px}.key{color:#f5c542;font-weight:800}.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(17,17,22,.96);backdrop-filter:blur(14px);padding:9px;z-index:10}.bottomin{max-width:760px;margin:auto;display:flex;justify-content:center;gap:7px}.meter{height:5px;background:#29292f;border-radius:5px;overflow:hidden;margin:10px 0}.meter i{display:block;width:0;height:100%;background:#f5c542}#stage,#bottom{display:none}.hint{line-height:1.45}.error{color:#ff8f8f}
+</style>
+</head>
+<body>
+<header id="header"><h1>🎸 Alfie Live Songbook</h1><div class="muted">Private live-performance prototype</div></header>
+<main id="library"></main>
+<section id="stage"><main>
+<div class="card"><h2 id="title" style="margin:0 0 5px"></h2><div class="muted">Your key: <span class="key" id="key"></span> · Capo: <span id="capo"></span></div><div class="row" style="margin-top:12px"><button id="down">− Semitone</button><button id="up">+ Semitone</button><button id="reset">Reset</button></div></div>
+<div class="card" id="songLines"></div>
+<div class="card"><b>🎤 Microphone test</b><p class="muted hint">This prototype checks that the phone can hear your guitar. It does not yet claim to follow the exact song position. That is the next engine we are building.</p><div class="meter"><i id="meter"></i></div><div class="muted" id="status">Microphone off</div><div class="row" style="margin-top:10px"><button class="primary" id="mic">Enable microphone</button><button id="auto">Auto-scroll</button></div></div>
+</main></section>
+<div class="bottom" id="bottom"><div class="bottomin"><button id="back">← Library</button><button id="prev">◀</button><button class="primary" id="next">Next ▶</button></div></div>
+<script>
+(function(){
+'use strict';
+const songs=[
+{title:'Amazing Grace',key:'G',capo:0,lines:[['Amazing grace, how sweet the sound','G'],['That saved a wretch like me','C'],['I once was lost, but now am found','G'],['Was blind, but now I see','D'],["'Twas grace that taught my heart to fear",'G'],['And grace my fears relieved','C'],['How precious did that grace appear','G'],['The hour I first believed','D']]},
+{title:'This Little Light of Mine',key:'G',capo:0,lines:[['This little light of mine','G'],["I'm gonna let it shine",'C'],['This little light of mine','G'],["I'm gonna let it shine",'D'],['Everywhere I go','G'],["I'm gonna let it shine",'C'],['Everywhere I go','G'],["I'm gonna let it shine",'D']]},
+{title:'Alfie Demo Song',key:'E',capo:0,lines:[["I'm walking down the road tonight",'E'],['With a song that I wrote for you','A'],['The city lights are fading out','E'],['And the sky is turning blue','B'],['I keep the rhythm with my feet','E'],['And let the old guitar ring','A'],['One more chorus, one more night','E'],['One more reason to sing','B']]}
+];
+const notes=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+let songIndex=0,offset=0,currentLine=0,mic=false,raf=0,autoTimer=0,stream=null,ctx=null;
+const $=id=>document.getElementById(id);
+function shift(k,n){const i=notes.indexOf(k);return i<0?k:notes[(i+n%12+12)%12]}
+function renderLibrary(){
+$('library').innerHTML='<div class="card"><b>Your songs</b><p class="muted hint">Three demo songs are included for testing. Your real setlist will replace these.</p></div>' + songs.map((s,i)=>'<div class="card song"><div><b>'+escapeHtml(s.title)+'</b><div class="muted">Key '+s.key+' · '+s.lines.length+' lines</div></div><button class="primary" data-open="'+i+'">Open</button></div>').join('');
+$('library').querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openSong(Number(b.dataset.open))));
+}
+function renderSong(){const s=songs[songIndex];$('title').textContent=s.title;$('key').textContent=shift(s.key,offset);$('capo').textContent=s.capo;$('songLines').innerHTML=s.lines.map((x,i)=>'<div class="line '+(i===currentLine?'current':'')+'" data-line="'+i+'"><span class="chord">'+shift(x[1],offset)+'</span>'+escapeHtml(x[0])+'</div>').join('');$('songLines').querySelectorAll('[data-line]').forEach(el=>el.addEventListener('click',()=>setLine(Number(el.dataset.line))));}
+function setLine(i){if(i<0||i>=songs[songIndex].lines.length)return;currentLine=i;renderSong();const el=$('songLines').querySelector('[data-line="'+i+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}
+function openSong(i){songIndex=i;offset=0;currentLine=0;stopAuto();$('header').style.display='none';$('library').style.display='none';$('stage').style.display='block';$('bottom').style.display='block';renderSong();window.scrollTo(0,0)}
+function back(){stopMic();stopAuto();$('stage').style.display='none';$('bottom').style.display='none';$('library').style.display='block';$('header').style.display='block';window.scrollTo(0,0)}
+function next(){setLine(currentLine+1)}function prev(){setLine(currentLine-1)}
+function transpose(n){offset+=n;renderSong()}
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=0}}
+function toggleAuto(){if(autoTimer){stopAuto();$('auto').textContent='Auto-scroll';return} $('auto').textContent='Stop scroll';autoTimer=setInterval(()=>{if(currentLine>=songs[songIndex].lines.length-1){stopAuto();$('auto').textContent='Auto-scroll';return}setLine(currentLine+1)},3000)}
+async function toggleMic(){if(mic){stopMic();return}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').innerHTML='<span class="error">This browser does not provide microphone access.</span>';return}try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});ctx=new (window.AudioContext||window.webkitAudioContext)();const src=ctx.createMediaStreamSource(stream);const a=ctx.createAnalyser();a.fftSize=2048;src.connect(a);const buf=new Float32Array(a.fftSize);mic=true;$('mic').textContent='Stop microphone';$('status').textContent='Listening… play your guitar';const loop=()=>{if(!mic)return;a.getFloatTimeDomainData(buf);let sum=0;for(let i=0;i<buf.length;i++)sum+=buf[i]*buf[i];const rms=Math.sqrt(sum/buf.length);$('meter').style.width=Math.min(100,rms*900)+'%';$('status').textContent=rms>.012?'🎸 Guitar/audio detected':'Listening…';raf=requestAnimationFrame(loop)};loop()}catch(e){$('status').innerHTML='<span class="error">Microphone permission was denied or unavailable.</span>'}}
+function stopMic(){mic=false;if(raf)cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(ctx){ctx.close();ctx=null}$('mic').textContent='Enable microphone';$('status').textContent='Microphone off';$('meter').style.width='0'}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('down').addEventListener('click',()=>transpose(-1));$('up').addEventListener('click',()=>transpose(1));$('reset').addEventListener('click',()=>{offset=0;renderSong()});$('back').addEventListener('click',back);$('prev').addEventListener('click',prev);$('next').addEventListener('click',next);$('mic').addEventListener('click',toggleMic);$('auto').addEventListener('click',toggleAuto);renderLibrary();
+})();
+</script>
+</body>
+</html>
