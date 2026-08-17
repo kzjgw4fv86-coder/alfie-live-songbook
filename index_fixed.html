@@ -1,52 +1,1085 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0b0d">
-<title>Alfie Live Songbook</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#0b0b0d;color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{padding:18px 16px 12px;position:sticky;top:0;background:rgba(11,11,13,.94);backdrop-filter:blur(12px);z-index:5}h1{font-size:23px;margin:0 0 4px}.muted{color:#a1a1aa;font-size:13px}main{max-width:760px;margin:auto;padding:8px 14px 110px}.card{background:#17171b;border-radius:16px;padding:15px;margin:10px 0}.song{display:flex;justify-content:space-between;align-items:center;gap:12px}.song b{font-size:17px}button{border:0;border-radius:11px;padding:11px 13px;background:#29292f;color:#fff;font-weight:650;font-size:15px}.primary{background:#f5c542;color:#111}.row{display:flex;gap:8px;flex-wrap:wrap}.line{font-size:21px;line-height:1.5;padding:11px 7px;border-bottom:1px solid #29292f;border-radius:10px}.line.current{background:#302c1d}.chord{color:#f5c542;font-weight:800;margin-right:9px}.key{color:#f5c542;font-weight:800}.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(17,17,22,.96);backdrop-filter:blur(14px);padding:9px;z-index:10}.bottomin{max-width:760px;margin:auto;display:flex;justify-content:center;gap:7px}.meter{height:5px;background:#29292f;border-radius:5px;overflow:hidden;margin:10px 0}.meter i{display:block;width:0;height:100%;background:#f5c542}#stage,#bottom{display:none}.hint{line-height:1.45}.error{color:#ff8f8f}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>Alfie Live Songbook</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #0b0b0d;
+      color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(11, 11, 13, 0.95);
+      backdrop-filter: blur(12px);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: #999;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 700px;
+      margin: auto;
+      padding: 12px 16px 120px;
+    }
+
+    .card {
+      background: #18181c;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .song-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .song-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .meta {
+      color: #999;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 11px;
+      padding: 11px 14px;
+      background: #29292f;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    button.primary {
+      background: #f5c542;
+      color: #111;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .song-header h2 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .key {
+      color: #f5c542;
+      font-weight: 800;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .song-line {
+      padding: 13px 8px;
+      font-size: 20px;
+      line-height: 1.5;
+      border-bottom: 1px solid #29292f;
+      border-radius: 8px;
+    }
+
+    .song-line.current {
+      background: #302c1d;
+    }
+
+    .chord {
+      color: #f5c542;
+      font-weight: 800;
+      margin-right: 9px;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(17, 17, 22, 0.96);
+      padding: 10px;
+      backdrop-filter: blur(12px);
+    }
+
+    .bottom-inner {
+      max-width: 700px;
+      margin: auto;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .meter {
+      height: 6px;
+      background: #29292f;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: #f5c542;
+      transition: width 0.08s linear;
+    }
+
+    .status {
+      margin-top: 8px;
+      color: #999;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .empty {
+      color: #999;
+      text-align: center;
+      padding: 30px 10px;
+    }
+  </style>
 </head>
+
 <body>
-<header id="header"><h1>🎸 Alfie Live Songbook</h1><div class="muted">Private live-performance prototype</div></header>
-<main id="library"></main>
-<section id="stage"><main>
-<div class="card"><h2 id="title" style="margin:0 0 5px"></h2><div class="muted">Your key: <span class="key" id="key"></span> · Capo: <span id="capo"></span></div><div class="row" style="margin-top:12px"><button id="down">− Semitone</button><button id="up">+ Semitone</button><button id="reset">Reset</button></div></div>
-<div class="card" id="songLines"></div>
-<div class="card"><b>🎤 Microphone test</b><p class="muted hint">This prototype checks that the phone can hear your guitar. It does not yet claim to follow the exact song position. That is the next engine we are building.</p><div class="meter"><i id="meter"></i></div><div class="muted" id="status">Microphone off</div><div class="row" style="margin-top:10px"><button class="primary" id="mic">Enable microphone</button><button id="auto">Auto-scroll</button></div></div>
-</main></section>
-<div class="bottom" id="bottom"><div class="bottomin"><button id="back">← Library</button><button id="prev">◀</button><button class="primary" id="next">Next ▶</button></div></div>
+
+<header id="header">
+  <h1>🎸 Alfie Live Songbook</h1>
+  <div class="subtitle">
+    Live performance songbook • Prototype
+  </div>
+</header>
+
+<main>
+
+  <!-- LIBRARY -->
+
+  <section id="library">
+
+    <div class="card">
+      <strong>Your Songs</strong>
+      <div class="meta">
+        Prototype songs for testing the system.
+      </div>
+    </div>
+
+    <div id="songList"></div>
+
+  </section>
+
+
+  <!-- SONG VIEW -->
+
+  <section id="songView" class="hidden">
+
+    <div class="card song-header">
+
+      <h2 id="songTitle"></h2>
+
+      <div class="meta">
+        Your key:
+        <span class="key" id="songKey"></span>
+
+        &nbsp; • &nbsp;
+
+        Capo:
+        <span id="songCapo"></span>
+      </div>
+
+      <div class="controls">
+
+        <button onclick="transpose(-1)">
+          − Semitone
+        </button>
+
+        <button onclick="transpose(1)">
+          + Semitone
+        </button>
+
+        <button onclick="resetTranspose()">
+          Reset
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div id="lyrics"></div>
+
+    </div>
+
+
+    <div class="card">
+
+      <strong>🎤 Live Follow Test</strong>
+
+      <div class="meta">
+        Microphone audio detection prototype.
+      </div>
+
+      <div class="meter">
+        <div
+          id="meterFill"
+          class="meter-fill">
+        </div>
+      </div>
+
+      <div
+        id="micStatus"
+        class="status">
+        Microphone off
+      </div>
+
+      <div class="controls">
+
+        <button
+          id="micButton"
+          class="primary"
+          onclick="toggleMicrophone()">
+          Enable microphone
+        </button>
+
+        <button onclick="nextLine()">
+          Next line
+        </button>
+
+        <button onclick="previousLine()">
+          Previous line
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- BOTTOM NAVIGATION -->
+
+<div
+  id="bottomBar"
+  class="bottom-bar hidden">
+
+  <div class="bottom-inner">
+
+    <button onclick="showLibrary()">
+      ← Library
+    </button>
+
+  </div>
+
+</div>
+
+
 <script>
-(function(){
-'use strict';
-const songs=[
-{title:'Amazing Grace',key:'G',capo:0,lines:[['Amazing grace, how sweet the sound','G'],['That saved a wretch like me','C'],['I once was lost, but now am found','G'],['Was blind, but now I see','D'],["'Twas grace that taught my heart to fear",'G'],['And grace my fears relieved','C'],['How precious did that grace appear','G'],['The hour I first believed','D']]},
-{title:'This Little Light of Mine',key:'G',capo:0,lines:[['This little light of mine','G'],["I'm gonna let it shine",'C'],['This little light of mine','G'],["I'm gonna let it shine",'D'],['Everywhere I go','G'],["I'm gonna let it shine",'C'],['Everywhere I go','G'],["I'm gonna let it shine",'D']]},
-{title:'Alfie Demo Song',key:'E',capo:0,lines:[["I'm walking down the road tonight",'E'],['With a song that I wrote for you','A'],['The city lights are fading out','E'],['And the sky is turning blue','B'],['I keep the rhythm with my feet','E'],['And let the old guitar ring','A'],['One more chorus, one more night','E'],['One more reason to sing','B']]}
+
+const songs = [
+
+  {
+    title: "Amazing Grace",
+    key: "G",
+    capo: 0,
+
+    lines: [
+
+      {
+        chord: "G",
+        text: "Amazing grace, how sweet the sound"
+      },
+
+      {
+        chord: "C",
+        text: "That saved a wretch like me"
+      },
+
+      {
+        chord: "G",
+        text: "I once was lost, but now am found"
+      },
+
+      {
+        chord: "D",
+        text: "Was blind, but now I see"
+      },
+
+      {
+        chord: "G",
+        text: "'Twas grace that taught my heart to fear"
+      },
+
+      {
+        chord: "C",
+        text: "And grace my fears relieved"
+      },
+
+      {
+        chord: "G",
+        text: "How precious did that grace appear"
+      },
+
+      {
+        chord: "D",
+        text: "The hour I first believed"
+      }
+
+    ]
+  },
+
+
+  {
+    title: "This Little Light of Mine",
+    key: "G",
+    capo: 0,
+
+    lines: [
+
+      {
+        chord: "G",
+        text: "This little light of mine"
+      },
+
+      {
+        chord: "C",
+        text: "I'm gonna let it shine"
+      },
+
+      {
+        chord: "G",
+        text: "This little light of mine"
+      },
+
+      {
+        chord: "D",
+        text: "I'm gonna let it shine"
+      },
+
+      {
+        chord: "G",
+        text: "Everywhere I go"
+      },
+
+      {
+        chord: "C",
+        text: "I'm gonna let it shine"
+      },
+
+      {
+        chord: "G",
+        text: "Everywhere I go"
+      },
+
+      {
+        chord: "D",
+        text: "I'm gonna let it shine"
+      }
+
+    ]
+  },
+
+
+  {
+    title: "Alfie Demo Song",
+    key: "E",
+    capo: 0,
+
+    lines: [
+
+      {
+        chord: "E",
+        text: "I'm walking down the road tonight"
+      },
+
+      {
+        chord: "A",
+        text: "With a song that I wrote for you"
+      },
+
+      {
+        chord: "E",
+        text: "The city lights are fading out"
+      },
+
+      {
+        chord: "B",
+        text: "And the sky is turning blue"
+      },
+
+      {
+        chord: "E",
+        text: "I keep the rhythm with my feet"
+      },
+
+      {
+        chord: "A",
+        text: "And let the old guitar ring"
+      },
+
+      {
+        chord: "E",
+        text: "One more chorus, one more night"
+      },
+
+      {
+        chord: "B",
+        text: "One more reason to sing"
+      }
+
+    ]
+  }
+
 ];
-const notes=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-let songIndex=0,offset=0,currentLine=0,mic=false,raf=0,autoTimer=0,stream=null,ctx=null;
-const $=id=>document.getElementById(id);
-function shift(k,n){const i=notes.indexOf(k);return i<0?k:notes[(i+n%12+12)%12]}
-function renderLibrary(){
-$('library').innerHTML='<div class="card"><b>Your songs</b><p class="muted hint">Three demo songs are included for testing. Your real setlist will replace these.</p></div>' + songs.map((s,i)=>'<div class="card song"><div><b>'+escapeHtml(s.title)+'</b><div class="muted">Key '+s.key+' · '+s.lines.length+' lines</div></div><button class="primary" data-open="'+i+'">Open</button></div>').join('');
-$('library').querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openSong(Number(b.dataset.open))));
+
+
+const noteNames = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B"
+];
+
+
+let currentSong = null;
+
+let transposeAmount = 0;
+
+let currentLine = 0;
+
+let microphoneActive = false;
+
+let animationFrame = null;
+
+let audioStream = null;
+
+let audioContext = null;
+
+
+
+/* -------------------------
+   LIBRARY
+------------------------- */
+
+
+function renderLibrary() {
+
+  const container =
+    document.getElementById("songList");
+
+  container.innerHTML = "";
+
+  songs.forEach((song, index) => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+
+      <div class="song-row">
+
+        <div>
+
+          <div class="song-title">
+            ${song.title}
+          </div>
+
+          <div class="meta">
+            Key ${song.key}
+            • ${song.lines.length} lines
+          </div>
+
+        </div>
+
+        <button class="primary">
+          Open
+        </button>
+
+      </div>
+
+    `;
+
+    card
+      .querySelector("button")
+      .addEventListener(
+        "click",
+        () => openSong(index)
+      );
+
+    container.appendChild(card);
+
+  });
+
 }
-function renderSong(){const s=songs[songIndex];$('title').textContent=s.title;$('key').textContent=shift(s.key,offset);$('capo').textContent=s.capo;$('songLines').innerHTML=s.lines.map((x,i)=>'<div class="line '+(i===currentLine?'current':'')+'" data-line="'+i+'"><span class="chord">'+shift(x[1],offset)+'</span>'+escapeHtml(x[0])+'</div>').join('');$('songLines').querySelectorAll('[data-line]').forEach(el=>el.addEventListener('click',()=>setLine(Number(el.dataset.line))));}
-function setLine(i){if(i<0||i>=songs[songIndex].lines.length)return;currentLine=i;renderSong();const el=$('songLines').querySelector('[data-line="'+i+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}
-function openSong(i){songIndex=i;offset=0;currentLine=0;stopAuto();$('header').style.display='none';$('library').style.display='none';$('stage').style.display='block';$('bottom').style.display='block';renderSong();window.scrollTo(0,0)}
-function back(){stopMic();stopAuto();$('stage').style.display='none';$('bottom').style.display='none';$('library').style.display='block';$('header').style.display='block';window.scrollTo(0,0)}
-function next(){setLine(currentLine+1)}function prev(){setLine(currentLine-1)}
-function transpose(n){offset+=n;renderSong()}
-function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=0}}
-function toggleAuto(){if(autoTimer){stopAuto();$('auto').textContent='Auto-scroll';return} $('auto').textContent='Stop scroll';autoTimer=setInterval(()=>{if(currentLine>=songs[songIndex].lines.length-1){stopAuto();$('auto').textContent='Auto-scroll';return}setLine(currentLine+1)},3000)}
-async function toggleMic(){if(mic){stopMic();return}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').innerHTML='<span class="error">This browser does not provide microphone access.</span>';return}try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});ctx=new (window.AudioContext||window.webkitAudioContext)();const src=ctx.createMediaStreamSource(stream);const a=ctx.createAnalyser();a.fftSize=2048;src.connect(a);const buf=new Float32Array(a.fftSize);mic=true;$('mic').textContent='Stop microphone';$('status').textContent='Listening… play your guitar';const loop=()=>{if(!mic)return;a.getFloatTimeDomainData(buf);let sum=0;for(let i=0;i<buf.length;i++)sum+=buf[i]*buf[i];const rms=Math.sqrt(sum/buf.length);$('meter').style.width=Math.min(100,rms*900)+'%';$('status').textContent=rms>.012?'🎸 Guitar/audio detected':'Listening…';raf=requestAnimationFrame(loop)};loop()}catch(e){$('status').innerHTML='<span class="error">Microphone permission was denied or unavailable.</span>'}}
-function stopMic(){mic=false;if(raf)cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(ctx){ctx.close();ctx=null}$('mic').textContent='Enable microphone';$('status').textContent='Microphone off';$('meter').style.width='0'}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-$('down').addEventListener('click',()=>transpose(-1));$('up').addEventListener('click',()=>transpose(1));$('reset').addEventListener('click',()=>{offset=0;renderSong()});$('back').addEventListener('click',back);$('prev').addEventListener('click',prev);$('next').addEventListener('click',next);$('mic').addEventListener('click',toggleMic);$('auto').addEventListener('click',toggleAuto);renderLibrary();
-})();
+
+
+
+/* -------------------------
+   SONG
+------------------------- */
+
+
+function openSong(index) {
+
+  currentSong = index;
+
+  transposeAmount = 0;
+
+  currentLine = 0;
+
+  document
+    .getElementById("library")
+    .classList
+    .add("hidden");
+
+  document
+    .getElementById("songView")
+    .classList
+    .remove("hidden");
+
+  document
+    .getElementById("bottomBar")
+    .classList
+    .remove("hidden");
+
+  document
+    .getElementById("header")
+    .classList
+    .add("hidden");
+
+  renderSong();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "instant"
+  });
+
+}
+
+
+
+/* -------------------------
+   RENDER SONG
+------------------------- */
+
+
+function renderSong() {
+
+  const song =
+    songs[currentSong];
+
+  document
+    .getElementById("songTitle")
+    .textContent =
+    song.title;
+
+  document
+    .getElementById("songKey")
+    .textContent =
+    transposeKey(
+      song.key,
+      transposeAmount
+    );
+
+  document
+    .getElementById("songCapo")
+    .textContent =
+    song.capo;
+
+  const lyrics =
+    document.getElementById("lyrics");
+
+  lyrics.innerHTML = "";
+
+  song.lines.forEach(
+    (line, index) => {
+
+      const element =
+        document.createElement("div");
+
+      element.className =
+        "song-line";
+
+      if (index === currentLine) {
+        element.classList.add(
+          "current"
+        );
+      }
+
+      element.id =
+        "song-line-" + index;
+
+      element.innerHTML = `
+
+        <span class="chord">
+          ${transposeKey(
+            line.chord,
+            transposeAmount
+          )}
+        </span>
+
+        ${line.text}
+
+      `;
+
+      lyrics.appendChild(element);
+
+    }
+  );
+
+}
+
+
+
+/* -------------------------
+   TRANSPOSE
+------------------------- */
+
+
+function transposeKey(
+  key,
+  amount
+) {
+
+  const index =
+    noteNames.indexOf(key);
+
+  if (index === -1) {
+    return key;
+  }
+
+  let newIndex =
+    (index + amount) % 12;
+
+  if (newIndex < 0) {
+    newIndex += 12;
+  }
+
+  return noteNames[newIndex];
+
+}
+
+
+
+function transpose(amount) {
+
+  transposeAmount += amount;
+
+  renderSong();
+
+}
+
+
+
+function resetTranspose() {
+
+  transposeAmount = 0;
+
+  renderSong();
+
+}
+
+
+
+/* -------------------------
+   LINE NAVIGATION
+------------------------- */
+
+
+function highlightLine() {
+
+  document
+    .querySelectorAll(".song-line")
+    .forEach(
+      element =>
+        element.classList.remove(
+          "current"
+        )
+    );
+
+  const element =
+    document.getElementById(
+      "song-line-" + currentLine
+    );
+
+  if (!element) {
+    return;
+  }
+
+  element.classList.add(
+    "current"
+  );
+
+  element.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+}
+
+
+
+function nextLine() {
+
+  if (!currentSong) {
+    if (currentSong !== 0) {
+      return;
+    }
+  }
+
+  const song =
+    songs[currentSong];
+
+  if (
+    currentLine <
+    song.lines.length - 1
+  ) {
+
+    currentLine++;
+
+    highlightLine();
+
+  }
+
+}
+
+
+
+function previousLine() {
+
+  if (!currentSong) {
+    if (currentSong !== 0) {
+      return;
+    }
+  }
+
+  if (currentLine > 0) {
+
+    currentLine--;
+
+    highlightLine();
+
+  }
+
+}
+
+
+
+/* -------------------------
+   MICROPHONE
+------------------------- */
+
+
+async function toggleMicrophone() {
+
+  if (microphoneActive) {
+
+    stopMicrophone();
+
+    return;
+
+  }
+
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    document
+      .getElementById("micStatus")
+      .textContent =
+      "Microphone isn't supported here.";
+
+    return;
+
+  }
+
+
+  try {
+
+    audioStream =
+      await navigator
+        .mediaDevices
+        .getUserMedia({
+          audio: true
+        });
+
+
+    audioContext =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+
+    const source =
+      audioContext
+        .createMediaStreamSource(
+          audioStream
+        );
+
+
+    const analyser =
+      audioContext
+        .createAnalyser();
+
+
+    analyser.fftSize = 2048;
+
+
+    source.connect(analyser);
+
+
+    const buffer =
+      new Float32Array(
+        analyser.fftSize
+      );
+
+
+    microphoneActive = true;
+
+
+    document
+      .getElementById("micButton")
+      .textContent =
+      "Stop microphone";
+
+
+    document
+      .getElementById("micStatus")
+      .textContent =
+      "Listening…";
+
+
+    function analyse() {
+
+      if (!microphoneActive) {
+        return;
+      }
+
+      analyser.getFloatTimeDomainData(
+        buffer
+      );
+
+
+      let total = 0;
+
+      for (
+        let i = 0;
+        i < buffer.length;
+        i++
+      ) {
+
+        total +=
+          buffer[i] *
+          buffer[i];
+
+      }
+
+
+      const rms =
+        Math.sqrt(
+          total /
+          buffer.length
+        );
+
+
+      const percentage =
+        Math.min(
+          100,
+          rms * 900
+        );
+
+
+      document
+        .getElementById("meterFill")
+        .style
+        .width =
+        percentage + "%";
+
+
+      document
+        .getElementById("micStatus")
+        .textContent =
+        rms > 0.012
+          ? "🎸 Guitar/audio detected"
+          : "Listening…";
+
+
+      animationFrame =
+        requestAnimationFrame(
+          analyse
+        );
+
+    }
+
+
+    analyse();
+
+
+  } catch (error) {
+
+    document
+      .getElementById("micStatus")
+      .textContent =
+      "Microphone permission was not granted.";
+
+  }
+
+}
+
+
+
+function stopMicrophone() {
+
+  microphoneActive = false;
+
+
+  if (animationFrame) {
+
+    cancelAnimationFrame(
+      animationFrame
+    );
+
+    animationFrame = null;
+
+  }
+
+
+  if (audioStream) {
+
+    audioStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+    audioStream = null;
+
+  }
+
+
+  if (audioContext) {
+
+    audioContext.close();
+
+    audioContext = null;
+
+  }
+
+
+  document
+    .getElementById("micButton")
+    .textContent =
+    "Enable microphone";
+
+
+  document
+    .getElementById("micStatus")
+    .textContent =
+    "Microphone off";
+
+
+  document
+    .getElementById("meterFill")
+    .style
+    .width =
+    "0%";
+
+}
+
+
+
+/* -------------------------
+   BACK TO LIBRARY
+------------------------- */
+
+
+function showLibrary() {
+
+  stopMicrophone();
+
+  document
+    .getElementById("songView")
+    .classList
+    .add("hidden");
+
+  document
+    .getElementById("library")
+    .classList
+    .remove("hidden");
+
+  document
+    .getElementById("bottomBar")
+    .classList
+    .add("hidden");
+
+  document
+    .getElementById("header")
+    .classList
+    .remove("hidden");
+
+}
+
+
+
+/* -------------------------
+   START
+------------------------- */
+
+
+renderLibrary();
+
 </script>
+
 </body>
 </html>
